@@ -1,7 +1,18 @@
+import random
+
+
 class Entity:
     def __init__(self, x_coord: int, y_coord: int):
         self.x = x_coord
         self.y = y_coord
+        self.entity_id = self.generate_id()
+
+    @staticmethod
+    def generate_id():
+        entity_id = ''
+        for i in range(0, 7):
+            entity_id += random.randint(0, 1000).__str__()
+        return entity_id
 
     def __str__(self):
         return ' '

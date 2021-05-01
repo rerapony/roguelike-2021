@@ -18,7 +18,7 @@ class Client:
 
     def send(self, msg):
         message = pickle.dumps(msg)
-        msg_length = len(message)
+        msg_length = message.__sizeof__()
         send_length = str(msg_length).encode(self.FORMAT)
         send_length += b' ' * (self.HEADER - len(send_length))
         self.client.send(send_length)
@@ -28,6 +28,8 @@ class Client:
         msg_length = self.client.recv(self.HEADER).decode(self.FORMAT)
         msg_length = int(msg_length)
         data_binary = self.client.recv(msg_length)
+        while len(data_binary) < msg_length:
+            data_binary += self.client.recv(msg_length - len(data_binary))
         data = pickle.loads(data_binary)
         return data
 
@@ -39,20 +41,18 @@ class Client:
         screen_width = self.screen_size[0]
         screen_height = self.screen_size[1]
 
-        engine = self.receive()
+        engine, player_id = self.receive()
         with tcod.context.new_terminal(
                 screen_width,
                 screen_height
         ) as context:
-            input_handler = InputHandler()
+            input_handler = InputHandler(player_id)
             root_console = tcod.Console(engine.game_map.width, engine.game_map.height, order="F")
             while True:
-                print(engine.player.x)
                 engine.render(console=root_console, context=context)
                 for event in tcod.event.wait():
                     action = input_handler.dispatch(event)
                     if action is not None:
-                        print(action)
                         self.send(action)
                         engine = self.receive()
 
