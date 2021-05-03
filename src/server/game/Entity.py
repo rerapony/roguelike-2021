@@ -1,13 +1,16 @@
-import random
 import copy
+import random
+
 from src.server.game.map.GameMap import GameMap
 
 
 class Entity:
-    def __init__(self, x_coord: int, y_coord: int):
+    def __init__(self, x_coord: int, y_coord: int, is_player: bool = False, blocks_movement: bool = False):
         self.x = x_coord
         self.y = y_coord
         self.entity_id = self.generate_id()
+        self.blocks_movement = blocks_movement
+        self.is_player = is_player
 
     @staticmethod
     def generate_id():
@@ -32,8 +35,8 @@ class Entity:
 
 
 class MovableEntity(Entity):
-    def __init__(self, x_coord: int, y_coord: int):
-        super().__init__(x_coord, y_coord)
+    def __init__(self, x_coord: int, y_coord: int, is_player: bool = False):
+        super().__init__(x_coord, y_coord, is_player)
 
     def move(self, dx: int, dy: int):
         self.x += dx

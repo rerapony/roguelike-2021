@@ -1,7 +1,9 @@
-import numpy as np
 import random
-from tcod.console import Console
 from typing import Dict
+
+import numpy as np
+from tcod.console import Console
+
 from src.server.game.map.tiles import wall
 
 
@@ -10,6 +12,12 @@ class GameMap:
         self.width, self.height = width, height
         self.entities = entities
         self.tiles = np.full((width, height), fill_value=wall, order="F")
+
+    def get_blocking_entity(self, location_x: int, location_y: int):
+        for entity in self.entities.values():
+            if entity.blocks_movement and entity.x == location_x and entity.y == location_y:
+                return entity
+        return None
 
     def in_bounds(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height

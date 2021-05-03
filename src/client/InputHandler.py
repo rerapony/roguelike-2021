@@ -2,7 +2,7 @@ from typing import Optional
 
 import tcod.event
 
-from src.server.game.Commands import Command, Escape, Movement
+from src.server.game.Commands import Command, Escape, Advance
 
 
 class InputHandler(tcod.event.EventDispatch[Command]):
@@ -19,13 +19,13 @@ class InputHandler(tcod.event.EventDispatch[Command]):
         key = event.sym
 
         if key == tcod.event.K_UP:
-            action = Movement(dx=0, dy=-1, entity_id=self.entity_id)
+            action = Advance(dx=0, dy=-1, entity_id=self.entity_id)
         elif key == tcod.event.K_DOWN:
-            action = Movement(dx=0, dy=1, entity_id=self.entity_id)
+            action = Advance(dx=0, dy=1, entity_id=self.entity_id)
         elif key == tcod.event.K_LEFT:
-            action = Movement(dx=-1, dy=0, entity_id=self.entity_id)
+            action = Advance(dx=-1, dy=0, entity_id=self.entity_id)
         elif key == tcod.event.K_RIGHT:
-            action = Movement(dx=1, dy=0, entity_id=self.entity_id)
+            action = Advance(dx=1, dy=0, entity_id=self.entity_id)
 
         elif key == tcod.event.K_ESCAPE:
             action = Escape(self.entity_id)
