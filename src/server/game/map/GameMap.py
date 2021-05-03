@@ -1,13 +1,14 @@
 import numpy as np
 import random
 from tcod.console import Console
-
+from typing import Dict
 from src.server.game.map.tiles import wall
 
 
 class GameMap:
-    def __init__(self, width: int, height: int):
+    def __init__(self, width: int, height: int, entities: Dict):
         self.width, self.height = width, height
+        self.entities = entities
         self.tiles = np.full((width, height), fill_value=wall, order="F")
 
     def in_bounds(self, x: int, y: int) -> bool:
@@ -23,3 +24,5 @@ class GameMap:
 
     def render(self, console: Console) -> None:
         console.tiles_rgb[0:self.width, 0:self.height] = self.tiles["dark"]
+        for entity in self.entities.values():
+            console.print(entity.x, entity.y, str(entity))

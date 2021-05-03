@@ -1,4 +1,6 @@
 import random
+import copy
+from src.server.game.map.GameMap import GameMap
 
 
 class Entity:
@@ -20,6 +22,13 @@ class Entity:
     @property
     def color(self):
         return tuple([0, 0, 0])
+
+    def spawn(self, game_map: GameMap, x: int, y: int):
+        clone = copy.deepcopy(self)
+        clone.x = x
+        clone.y = y
+        game_map.entities[clone.entity_id] = clone
+        return clone
 
 
 class MovableEntity(Entity):

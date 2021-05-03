@@ -47,7 +47,7 @@ class Server:
             self.players.add(conn)
             coords = self.game.game_map.rand_coord()
             player = Player(coords[0], coords[1])
-            self.game.entities[player.entity_id] = player
+            self.game.game_map.entities[player.entity_id] = player
             self.send(conn, (self.game, player.entity_id))
             while True:
                 action = self.receive(conn)
@@ -55,8 +55,8 @@ class Server:
                 self.action_queue.put(action)
 
     def init_game(self):
-        map = generate_dungeon(20, 15, 20, 100, 100)
-        self.game = Engine({}, map)
+        map = generate_dungeon(20, 15, 20, 100, 100, 3)
+        self.game = Engine(map)
 
     async def start(self):
         print("Server started on port: {}".format(self.PORT))

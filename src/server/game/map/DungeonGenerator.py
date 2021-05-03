@@ -3,7 +3,7 @@ from typing import Iterator, List, Tuple
 
 import tcod
 
-from src.server.game.Entity import Entity
+from src.server.game.Enemy import Orc
 from src.server.game.map.GameMap import GameMap
 from src.server.game.map.tiles import floor
 
@@ -35,6 +35,19 @@ class Room:
         )
 
 
+def place_entities(
+    room: Room, dungeon: GameMap, maximum_monsters: int,
+) -> None:
+    number_of_monsters = random.randint(0, maximum_monsters)
+
+    for i in range(number_of_monsters):
+        x = random.randint(room.x1 + 1, room.x2 - 1)
+        y = random.randint(room.y1 + 1, room.y2 - 1)
+        orc = Orc(x, y)
+        if not any(entity.x == x and entity.y == y for entity in dungeon.entities.values()):
+            orc.spawn(dungeon, x, y)
+
+
 def tunnel_between(
     start: Tuple[int, int], end: Tuple[int, int]
 ) -> Iterator[Tuple[int, int]]:
@@ -61,9 +74,10 @@ def generate_dungeon(
     room_max_size: int,
     map_width: int,
     map_height: int,
+    max_num_of_enemies: int
 ) -> GameMap:
     """Generate a new dungeon map."""
-    dungeon = GameMap(map_width, map_height)
+    dungeon = GameMap(map_width, map_height, {})
 
     rooms: List[Room] = []
 
@@ -74,26 +88,19 @@ def generate_dungeon(
         x = random.randint(0, dungeon.width - room_width - 1)
         y = random.randint(0, dungeon.height - room_height - 1)
 
-        # "RectangularRoom" class makes rectangles easier to work with
         new_room = Room(x, y, room_width, room_height)
 
-        # Run through the other rooms and see if they intersect with this one.
         if any(new_room.intersects(other_room) for other_room in rooms):
-            continue  # This room intersects, so go to the next attempt.
-        # If there are no intersections then the room is valid.
+            continue
 
-        # Dig out this rooms inner area.
         dungeon.tiles[new_room.inner] = floor
 
         if len(rooms) == 0:
-            # The first room, where the player starts.
             pass
-        else:  # All rooms after the first.
-            # Dig out a tunnel between this room and the previous one.
+        else:
             for x, y in tunnel_between(rooms[-1].center, new_room.center):
                 dungeon.tiles[x, y] = floor
-
-        # Finally, append the new room to the list.
+        place_entities(new_room, dungeon, max_num_of_enemies)
         rooms.append(new_room)
 
     return dungeon
