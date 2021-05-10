@@ -1,8 +1,8 @@
+import asyncio
 import pickle
+import queue
 import socket
 import threading
-import asyncio
-import queue
 from typing import Set
 
 from src.server.game.Engine import Engine
@@ -31,12 +31,22 @@ class Server:
         conn.send(message)
 
     def receive(self, conn):
+        print("Recieve action")
         msg_length = conn.recv(self.HEADER).decode(self.FORMAT)
-        if not msg_length:
-            return
         msg_length = int(msg_length)
-        data_binary = conn.recv(msg_length)
+
+        data_binary = bytes()
+
+        while True:
+            packet = conn.recv(msg_length)
+            if not packet: break
+            data_binary += packet
+
+        # data_binary = conn.recv(msg_length)
+        # while len(data_binary) < msg_length:
+        #     data_binary += conn.recv(msg_length - len(data_binary))
         data = pickle.loads(data_binary)
+        print("End recieve action")
         return data
 
     def handle_player(self):
@@ -46,7 +56,9 @@ class Server:
             print('Connected by', addr)
             self.players.add(conn)
             coords = self.game.game_map.rand_coord()
-            player = Player(coords[0], coords[1])
+
+            player = Player(game_map=self.game.game_map, x_coord=coords[0], y_coord=coords[1], blocks_movement=True)
+
             self.game.game_map.entities[player.entity_id] = player
             self.send(conn, (self.game, player.entity_id))
             while True:
@@ -55,8 +67,12 @@ class Server:
                 self.action_queue.put(action)
 
     def init_game(self):
-        map = generate_dungeon(20, 15, 20, 100, 100, 3)
-        self.game = Engine(map)
+        self.game = Engine()
+
+        map = generate_dungeon(max_rooms=20, room_min_size=15, room_max_size=20, map_width=100,
+                               map_height=100, max_num_of_enemies=3, engine=self.game)
+        self.game.game_map = map
+        self.game.update_fov()
 
     async def start(self):
         print("Server started on port: {}".format(self.PORT))
@@ -67,9 +83,15 @@ class Server:
             connection_thread.start()
             while True:
                 await asyncio.sleep(0)
+                print("Queue")
                 action = self.action_queue.get()
                 if action is not None:
+                    print("Game")
                     self.game.handle_action(action)
+
+                self.game.handle_enemy_turn()
+                self.game.update_fov()
+
                 for player in self.players:
                     self.send(player, self.game)
 

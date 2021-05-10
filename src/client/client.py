@@ -46,7 +46,7 @@ class Client:
                 screen_width,
                 screen_height
         ) as context:
-            input_handler = InputHandler(player_id)
+            input_handler = InputHandler(engine, player_id)
             root_console = tcod.Console(engine.game_map.width, engine.game_map.height, order="F")
             while True:
                 engine.render(console=root_console, context=context)

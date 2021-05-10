@@ -1,9 +1,10 @@
 from src.server.game.Entity import MovableEntity
+from src.server.game.map.GameMap import GameMap
 
 
 class Character(MovableEntity):
-    def __init__(self, x_coord: int, y_coord: int, is_player: bool = False):
-        super().__init__(x_coord, y_coord, is_player)
+    def __init__(self, game_map: GameMap = None, x_coord: int = 0, y_coord: int = 0, blocks_movement: bool = False):
+        super().__init__(game_map, x_coord, y_coord, blocks_movement)
         self.health = 100
         self.weapon = None
         self.items = []

@@ -4,11 +4,13 @@ from typing import Dict
 import numpy as np
 from tcod.console import Console
 
+from src.server.game.Engine import Engine
 from src.server.game.map.tiles import wall
 
 
 class GameMap:
-    def __init__(self, width: int, height: int, entities: Dict):
+    def __init__(self, engine: Engine, width: int, height: int, entities: Dict):
+        self.engine = engine
         self.width, self.height = width, height
         self.entities = entities
         self.tiles = np.full((width, height), fill_value=wall, order="F")
