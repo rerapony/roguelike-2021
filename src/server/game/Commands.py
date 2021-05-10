@@ -5,66 +5,79 @@ from src.server.game.Entity import Entity
 
 
 class Command:
-    def __init__(self, engine: Engine, entity_id: str):
-        self.engine = engine
+    def __init__(self, entity_id: str):
         self.entity_id = entity_id
-        self.entity = self.engine.game_map.entities[entity_id]
 
-    def invoke(self) -> None:
+    def entity(self, engine: Engine):
+        return engine.game_map.entities[self.entity_id]
+
+    def invoke(self, engine: Engine) -> None:
         raise NotImplementedError()
 
 
 class Escape(Command):
-    def invoke(self) -> None:
+    def invoke(self, engine: Engine) -> None:
         raise SystemExit()
 
 
+class Wait(Command):
+    def invoke(self, engine: Engine) -> None:
+        pass
+
+
 class DirectionCommand(Command):
-    def __init__(self, engine: Engine, entity_id: str, dx: int, dy: int):
-        super().__init__(engine, entity_id)
+    def __init__(self, entity_id: str, dx: int, dy: int):
+        super().__init__(entity_id)
         self.dx = dx
         self.dy = dy
 
-    @property
-    def dest_xy(self) -> Tuple[int, int]:
-        return self.entity.x + self.dx, self.entity.y + self.dy
+    def dest_xy(self, engine: Engine) -> Tuple[int, int]:
+        entity = self.entity(engine)
+        return entity.x + self.dx, entity.y + self.dy
 
-    @property
-    def blocking_entity(self) -> Optional[Entity]:
-        return self.engine.game_map.get_blocking_entity(*self.dest_xy)
+    def blocking_entity(self, engine: Engine) -> Optional[Entity]:
+        return engine.game_map.get_blocking_entity(*self.dest_xy(engine))
 
-    def invoke(self) -> None:
+    def invoke(self, engine: Engine) -> None:
         raise NotImplementedError()
 
 
 class Attack(DirectionCommand):
-    def invoke(self) -> None:
-        target = self.blocking_entity
-        if not target:
-            return
+    def invoke(self, engine: Engine) -> None:
 
-        print("Attacking enemy")
+        target = self.blocking_entity(engine)
+        if not target:
+            return  # No entity to attack.
+
+        damage = self.entity(engine).attack_component.attack - target.attack_component.defense
+
+        if damage > 0:
+            print(f"Attack for {damage} hit points.")
+            target.attack_component.health -= damage
+            target.attack_component.update_hp(engine)
+        else:
+            print(f"Attack does no damage.")
 
 
 class Movement(DirectionCommand):
-    def invoke(self) -> None:
-        dest_x, dest_y = self.dest_xy
+    def invoke(self, engine: Engine) -> None:
+        dest_x, dest_y = self.dest_xy(engine)
 
-        if not self.engine.game_map.in_bounds(dest_x, dest_y):
+        if not engine.game_map.in_bounds(dest_x, dest_y):
             return
-        if not self.engine.game_map.tiles["walkable"][dest_x, dest_y]:
+        if not engine.game_map.tiles["walkable"][dest_x, dest_y]:
             return
-        if self.engine.game_map.get_blocking_entity(dest_x, dest_y):
+        if engine.game_map.get_blocking_entity(dest_x, dest_y):
             return
 
-        self.entity.move(self.dx, self.dy)
+        self.entity(engine).move(self.dx, self.dy)
 
 
 class Advance(DirectionCommand):
-    def invoke(self) -> None:
+    def invoke(self, engine: Engine) -> None:
 
-        if self.blocking_entity:
-            return Attack(self.engine, self.entity.entity_id, self.dx, self.dy).invoke()
+        if self.blocking_entity(engine):
+            return Attack(self.entity_id, self.dx, self.dy).invoke(engine)
 
         else:
-            return Movement(self.engine, self.entity_id, self.dx, self.dy).invoke()
+            return Movement(self.entity_id, self.dx, self.dy).invoke(engine)

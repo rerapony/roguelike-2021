@@ -18,9 +18,10 @@ class Client:
 
     def send(self, msg):
         message = pickle.dumps(msg)
-        msg_length = message.__sizeof__()
+        msg_length = len(message)
         send_length = str(msg_length).encode(self.FORMAT)
         send_length += b' ' * (self.HEADER - len(send_length))
+
         self.client.send(send_length)
         self.client.send(message)
 
@@ -46,7 +47,7 @@ class Client:
                 screen_width,
                 screen_height
         ) as context:
-            input_handler = InputHandler(engine, player_id)
+            input_handler = InputHandler(player_id)
             root_console = tcod.Console(engine.game_map.width, engine.game_map.height, order="F")
             while True:
                 engine.render(console=root_console, context=context)

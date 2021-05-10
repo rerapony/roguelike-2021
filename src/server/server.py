@@ -31,22 +31,18 @@ class Server:
         conn.send(message)
 
     def receive(self, conn):
-        print("Recieve action")
         msg_length = conn.recv(self.HEADER).decode(self.FORMAT)
+
+        if not msg_length:
+            return
+
         msg_length = int(msg_length)
 
-        data_binary = bytes()
-
-        while True:
-            packet = conn.recv(msg_length)
-            if not packet: break
-            data_binary += packet
-
-        # data_binary = conn.recv(msg_length)
-        # while len(data_binary) < msg_length:
-        #     data_binary += conn.recv(msg_length - len(data_binary))
+        data_binary = conn.recv(msg_length)
+        while len(data_binary) < msg_length:
+            print(len(data_binary))
+            data_binary += conn.recv(msg_length - len(data_binary))
         data = pickle.loads(data_binary)
-        print("End recieve action")
         return data
 
     def handle_player(self):
@@ -60,6 +56,10 @@ class Server:
             player = Player(game_map=self.game.game_map, x_coord=coords[0], y_coord=coords[1], blocks_movement=True)
 
             self.game.game_map.entities[player.entity_id] = player
+
+            if player.entity_id not in self.game.players:
+                self.game.players.append(player.entity_id)
+
             self.send(conn, (self.game, player.entity_id))
             while True:
                 action = self.receive(conn)
@@ -88,10 +88,7 @@ class Server:
                 if action is not None:
                     print("Game")
                     self.game.handle_action(action)
-
-                self.game.handle_enemy_turn()
-                self.game.update_fov()
-
+                    self.game.handle_enemy_turn()
                 for player in self.players:
                     self.send(player, self.game)
 

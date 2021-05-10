@@ -49,9 +49,9 @@ def place_entities(
 
         enemy = None
         if enemy_type == 0:
-            enemy = Orc(game_map=dungeon, x_coord=x, y_coord=y, blocks_movement=True)
+            enemy = Orc(game_map=dungeon, x_coord=x, y_coord=y)
         else:
-            enemy = Elf(game_map=dungeon, x_coord=x, y_coord=y, blocks_movement=True)
+            enemy = Elf(game_map=dungeon, x_coord=x, y_coord=y)
 
         if not any(entity.x == x and entity.y == y for entity in dungeon.entities.values()):
             enemy.spawn(dungeon, x, y)
