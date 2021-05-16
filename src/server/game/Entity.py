@@ -29,6 +29,10 @@ class Entity:
     def color(self):
         return tuple([0, 0, 0])
 
+    @property
+    def name(self):
+        return "Entity"
+
     def spawn(self, game_map: GameMap, x: int, y: int):
         clone = copy.deepcopy(self)
         clone.x = x

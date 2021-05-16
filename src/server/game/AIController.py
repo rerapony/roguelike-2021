@@ -31,6 +31,14 @@ class BaseAI(Command, BaseComponent):
         return [(index[0], index[1]) for index in path]
 
 
+class PassiveAI(BaseAI):
+    def __init__(self, entity_id: str):
+        super().__init__(entity_id)
+
+    def invoke(self, engine: Engine) -> None:
+        return Wait(self.entity_id).invoke(engine)
+
+
 class HostileAI(BaseAI):
     def __init__(self, entity_id: str):
         super().__init__(entity_id)
@@ -39,7 +47,7 @@ class HostileAI(BaseAI):
 
     def target(self, engine: Engine):
         if self.target_id is None:
-            self.target_id = random.randint(0, len(engine.players)-1)
+            self.target_id = random.randint(0, len(engine.players) - 1)
 
         return engine.game_map.entities[engine.players[self.target_id]]
 

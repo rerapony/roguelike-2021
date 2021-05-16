@@ -19,17 +19,14 @@ class AttackComponent(BaseComponent):
 
     def update_hp(self, engine: Engine) -> None:
 
-        if self.health == 0 and self.entity(engine).ai:
+        if self.health <= 0 and self.entity(engine).ai is not None:
             self.die(engine)
 
     def die(self, engine: Engine) -> None:
-        if self.entity_id in engine.game_map.players:
+        if self.entity_id in engine.players:
             death_message = "You died!"
         else:
             death_message = f"Monster is dead!"
 
-        self.entity.char = "%"
-        self.entity.blocks_movement = False
-        self.entity.ai = None
-
         print(death_message)
+        del engine.game_map.entities[self.entity_id]

@@ -12,6 +12,10 @@ class Player(Character):
     def __str__(self):
         return '@'
 
+    @property
+    def name(self):
+        return "MainCharacter"
+
     def use(self, item):
         pass
 

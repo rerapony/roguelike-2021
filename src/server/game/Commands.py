@@ -52,7 +52,8 @@ class Attack(DirectionCommand):
         damage = self.entity(engine).attack_component.attack - target.attack_component.defense
 
         if damage > 0:
-            print(f"Attack for {damage} hit points.")
+            print(f"{target.name} HP is: {target.attack_component.health}")
+
             target.attack_component.health -= damage
             target.attack_component.update_hp(engine)
         else:
