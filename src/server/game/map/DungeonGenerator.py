@@ -84,7 +84,8 @@ def generate_dungeon(
         map_width: int,
         map_height: int,
         max_num_of_enemies: int,
-        engine: Engine
+        engine: Engine,
+        hud_border_y: int = 10
 ) -> GameMap:
     """Generate a new dungeon map."""
     dungeon = GameMap(engine, map_width, map_height, {})
@@ -96,7 +97,7 @@ def generate_dungeon(
         room_height = random.randint(room_min_size, room_max_size)
 
         x = random.randint(0, dungeon.width - room_width - 1)
-        y = random.randint(0, dungeon.height - room_height - 1)
+        y = random.randint(0, dungeon.height - hud_border_y - room_height - 1)
 
         new_room = Room(x, y, room_width, room_height)
 

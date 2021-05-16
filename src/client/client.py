@@ -50,7 +50,7 @@ class Client:
             input_handler = InputHandler(player_id)
             root_console = tcod.Console(engine.game_map.width, engine.game_map.height, order="F")
             while True:
-                engine.render(console=root_console, context=context)
+                engine.render(console=root_console, context=context, player_id=player_id)
                 for event in tcod.event.wait():
                     action = input_handler.dispatch(event)
                     if action is not None:
