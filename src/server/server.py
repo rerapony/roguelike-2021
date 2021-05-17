@@ -50,21 +50,30 @@ class Server:
         conn, addr = self.socket.accept()
         with conn:
             print('Connected by', addr)
-            self.players.add(conn)
+
             coords = self.game.game_map.rand_coord()
 
             player = Player(game_map=self.game.game_map, x_coord=coords[0], y_coord=coords[1])
 
             self.game.game_map.entities[player.entity_id] = player
+            self.players.add(conn)
 
             if player.entity_id not in self.game.players:
                 self.game.players.append(player.entity_id)
 
             self.send(conn, (self.game, player.entity_id))
             while True:
-                action = self.receive(conn)
-                print("Got action {}".format(action))
-                self.action_queue.put(action)
+                try:
+                    action = self.receive(conn)
+                    if action is not None:
+                        print("Got action {}".format(action))
+                    self.action_queue.put(action)
+                except (ConnectionAbortedError, Exception) as e:
+                    print(f"{player.entity_id} left the game.")
+                    if conn in self.players:
+                        self.players.remove(conn)
+                    print("end of player handle")
+                    return
 
     def init_game(self):
         self.game = Engine()
@@ -88,9 +97,19 @@ class Server:
                 if action is not None:
                     print("Game")
                     self.game.handle_action(action)
-                    self.game.handle_enemy_turn()
+                    if len(self.game.players) != 0:
+                        self.game.handle_enemy_turn()
                 for player in self.players:
-                    self.send(player, self.game)
+                    await asyncio.sleep(0)
+                    try:
+                        self.send(player, self.game)
+                    except (ConnectionAbortedError,  Exception):
+                        if player in self.players:
+                            self.players.remove(player)
+                        if len(self.players) == 0:
+                            print("enf of server")
+                            return
+                        continue
 
 
 if __name__ == "__main__":

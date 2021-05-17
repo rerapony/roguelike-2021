@@ -17,7 +17,9 @@ class Command:
 
 class Escape(Command):
     def invoke(self, engine: Engine) -> None:
-        raise SystemExit()
+        engine.players.remove(self.entity_id)
+        if engine.game_map.entities.get(self.entity_id) is not None:
+            del engine.game_map.entities[self.entity_id]
 
 
 class Wait(Command):
