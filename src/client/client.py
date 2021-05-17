@@ -3,6 +3,7 @@ import socket
 
 import tcod
 
+from src.client import UI
 from src.client.InputHandler import InputHandler
 
 
@@ -18,9 +19,10 @@ class Client:
 
     def send(self, msg):
         message = pickle.dumps(msg)
-        msg_length = message.__sizeof__()
+        msg_length = len(message)
         send_length = str(msg_length).encode(self.FORMAT)
         send_length += b' ' * (self.HEADER - len(send_length))
+
         self.client.send(send_length)
         self.client.send(message)
 
@@ -42,6 +44,11 @@ class Client:
         screen_height = self.screen_size[1]
 
         engine, player_id = self.receive()
+
+        engine.message_log.add_message(
+            "Hello and welcome, adventurer!", UI.Color.welcome_text
+        )
+
         with tcod.context.new_terminal(
                 screen_width,
                 screen_height
@@ -49,12 +56,14 @@ class Client:
             input_handler = InputHandler(player_id)
             root_console = tcod.Console(engine.game_map.width, engine.game_map.height, order="F")
             while True:
-                engine.render(console=root_console, context=context)
+                engine.render(console=root_console, context=context, player_id=player_id)
                 for event in tcod.event.wait():
                     action = input_handler.dispatch(event)
                     if action is not None:
                         self.send(action)
                         engine = self.receive()
+                        if player_id not in engine.players:
+                            return
 
 
 if __name__ == "__main__":

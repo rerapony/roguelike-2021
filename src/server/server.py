@@ -1,8 +1,8 @@
+import asyncio
 import pickle
+import queue
 import socket
 import threading
-import asyncio
-import queue
 from typing import Set
 
 from src.server.game.Engine import Engine
@@ -32,10 +32,16 @@ class Server:
 
     def receive(self, conn):
         msg_length = conn.recv(self.HEADER).decode(self.FORMAT)
+
         if not msg_length:
             return
+
         msg_length = int(msg_length)
+
         data_binary = conn.recv(msg_length)
+        while len(data_binary) < msg_length:
+            print(len(data_binary))
+            data_binary += conn.recv(msg_length - len(data_binary))
         data = pickle.loads(data_binary)
         return data
 
@@ -44,19 +50,38 @@ class Server:
         conn, addr = self.socket.accept()
         with conn:
             print('Connected by', addr)
-            self.players.add(conn)
+
             coords = self.game.game_map.rand_coord()
-            player = Player(coords[0], coords[1])
-            self.game.entities[player.entity_id] = player
+
+            player = Player(game_map=self.game.game_map, x_coord=coords[0], y_coord=coords[1])
+
+            self.game.game_map.entities[player.entity_id] = player
+            self.players.add(conn)
+
+            if player.entity_id not in self.game.players:
+                self.game.players.append(player.entity_id)
+
             self.send(conn, (self.game, player.entity_id))
             while True:
-                action = self.receive(conn)
-                print("Got action {}".format(action))
-                self.action_queue.put(action)
+                try:
+                    action = self.receive(conn)
+                    if action is not None:
+                        print("Got action {}".format(action))
+                    self.action_queue.put(action)
+                except (ConnectionAbortedError, Exception) as e:
+                    print(f"{player.entity_id} left the game.")
+                    if conn in self.players:
+                        self.players.remove(conn)
+                    print("end of player handle")
+                    return
 
     def init_game(self):
-        map = generate_dungeon(20, 15, 20, 100, 100)
-        self.game = Engine({}, map)
+        self.game = Engine()
+
+        map = generate_dungeon(max_rooms=20, room_min_size=15, room_max_size=20, map_width=100,
+                               map_height=100, max_num_of_enemies=3, engine=self.game)
+        self.game.game_map = map
+        self.game.update_fov()
 
     async def start(self):
         print("Server started on port: {}".format(self.PORT))
@@ -67,11 +92,24 @@ class Server:
             connection_thread.start()
             while True:
                 await asyncio.sleep(0)
+                print("Queue")
                 action = self.action_queue.get()
                 if action is not None:
+                    print("Game")
                     self.game.handle_action(action)
+                    if len(self.game.players) != 0:
+                        self.game.handle_enemy_turn()
                 for player in self.players:
-                    self.send(player, self.game)
+                    await asyncio.sleep(0)
+                    try:
+                        self.send(player, self.game)
+                    except (ConnectionAbortedError,  Exception):
+                        if player in self.players:
+                            self.players.remove(player)
+                        if len(self.players) == 0:
+                            print("enf of server")
+                            return
+                        continue
 
 
 if __name__ == "__main__":
