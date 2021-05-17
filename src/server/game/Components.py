@@ -1,5 +1,7 @@
 from src.server.game.Engine import Engine
 
+import numpy as np
+
 
 class BaseComponent:
     def __init__(self):
@@ -9,24 +11,38 @@ class BaseComponent:
         return engine.game_map.entities[self.entity_id]
 
 
-class AttackComponent(BaseComponent):
-    def __init__(self, hp: int, defense: int, attack: int):
+class HealthComponent(BaseComponent):
+    def __init__(self, max_health: int):
         super().__init__()
-        self.max_health = hp
-        self.health = hp
+        self.health = max_health
+        self.max_health = max_health
+
+    @property
+    def value(self):
+        return self.health
+
+    @value.setter
+    def value(self, new_value: int):
+        self.health = np.clip(new_value, 0, self.max_health)
+
+
+class AttackComponent(BaseComponent):
+    def __init__(self, health: HealthComponent, defense: int, attack: int):
+        super().__init__()
         self.defense = defense
         self.attack = attack
+        self.health_component = health
 
-    def update_hp(self, engine: Engine) -> None:
+    def take_damage(self, engine: Engine, damage: float):
+        true_damage = damage - self.defense
+        entity = self.entity(engine)
 
-        if self.health <= 0 and self.entity(engine).ai is not None:
-            self.die(engine)
+        if true_damage > 0:
+            print(f"{entity.name} takes {true_damage} damage!")
 
-    def die(self, engine: Engine) -> None:
-        if self.entity_id in engine.players:
-            death_message = "You died!"
-        else:
-            death_message = f"Monster is dead!"
+            self.health_component.value -= true_damage
 
-        print(death_message)
-        del engine.game_map.entities[self.entity_id]
+            print(f"{entity.name} HP is: {self.health_component.value} damage!")
+
+        if self.health_component.value <= 0:
+            entity.die(engine)
