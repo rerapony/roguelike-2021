@@ -44,7 +44,10 @@ class Engine:
     def render_hud(self, console: Console, player_id: str):
         if player_id in self.players:
             player = self.game_map.entities[player_id]
-            self.render_bar(console, player.attack_component.health, player.attack_component.max_health, total_width=20)
+            self.render_bar(console,
+                            player.health_component.health,
+                            player.health_component.max_health,
+                            total_width=20)
 
     def render_bar(self,
                    console: Console, current_value: int, maximum_value: int, total_width: int

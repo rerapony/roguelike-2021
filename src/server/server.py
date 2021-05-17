@@ -53,7 +53,7 @@ class Server:
             self.players.add(conn)
             coords = self.game.game_map.rand_coord()
 
-            player = Player(game_map=self.game.game_map, x_coord=coords[0], y_coord=coords[1], blocks_movement=True)
+            player = Player(game_map=self.game.game_map, x_coord=coords[0], y_coord=coords[1])
 
             self.game.game_map.entities[player.entity_id] = player
 

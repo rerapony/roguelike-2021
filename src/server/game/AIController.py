@@ -9,8 +9,7 @@ from src.server.game.Components import BaseComponent
 from src.server.game.Engine import Engine
 
 
-class BaseAI(Command, BaseComponent):
-
+class BaseAI(BaseComponent):
     def invoke(self, engine: Engine) -> None:
         raise NotImplementedError()
 
@@ -32,18 +31,19 @@ class BaseAI(Command, BaseComponent):
 
 
 class PassiveAI(BaseAI):
-    def __init__(self, entity_id: str):
-        super().__init__(entity_id)
+    def __init__(self):
+        super().__init__()
 
     def invoke(self, engine: Engine) -> None:
         return Wait(self.entity_id).invoke(engine)
 
 
 class HostileAI(BaseAI):
-    def __init__(self, entity_id: str):
-        super().__init__(entity_id)
+    def __init__(self, vision_radius: float):
+        super().__init__()
         self.path: List[Tuple[int, int]] = []
         self.target_id = None
+        self.vision_radius = vision_radius
 
     def target(self, engine: Engine):
         if self.target_id is None:
@@ -61,7 +61,7 @@ class HostileAI(BaseAI):
         if distance <= 1:
             return Attack(self.entity_id, dx, dy).invoke(engine)
 
-        if distance <= 10:
+        if distance <= self.vision_radius:
             self.path = self.get_path_to(engine, self.target(engine).x, self.target(engine).y)
 
             if self.path:

@@ -44,20 +44,11 @@ class DirectionCommand(Command):
 
 class Attack(DirectionCommand):
     def invoke(self, engine: Engine) -> None:
-
         target = self.blocking_entity(engine)
         if not target:
             return  # No entity to attack.
 
-        damage = self.entity(engine).attack_component.attack - target.attack_component.defense
-
-        if damage > 0:
-            print(f"{target.name} HP is: {target.attack_component.health}")
-
-            target.attack_component.health -= damage
-            target.attack_component.update_hp(engine)
-        else:
-            print(f"Attack does no damage.")
+        target.attack_component.take_damage(engine, self.entity(engine).attack_component.attack)
 
 
 class Movement(DirectionCommand):
