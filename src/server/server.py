@@ -65,11 +65,14 @@ class Server:
             while True:
                 try:
                     action = self.receive(conn)
-                    print("Got action {}".format(action))
+                    if action is not None:
+                        print("Got action {}".format(action))
                     self.action_queue.put(action)
-                except ConnectionAbortedError as e:
+                except (ConnectionAbortedError, Exception) as e:
                     print(f"{player.entity_id} left the game.")
-                    self.players.remove(conn)
+                    if conn in self.players:
+                        self.players.remove(conn)
+                    print("end of player handle")
                     return
 
     def init_game(self):
@@ -97,10 +100,14 @@ class Server:
                     if len(self.game.players) != 0:
                         self.game.handle_enemy_turn()
                 for player in self.players:
+                    await asyncio.sleep(0)
                     try:
                         self.send(player, self.game)
                     except (ConnectionAbortedError,  Exception):
+                        if player in self.players:
+                            self.players.remove(player)
                         if len(self.players) == 0:
+                            print("enf of server")
                             return
                         continue
 
