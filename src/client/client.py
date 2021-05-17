@@ -3,6 +3,7 @@ import socket
 
 import tcod
 
+from src.client import UI
 from src.client.InputHandler import InputHandler
 
 
@@ -43,6 +44,11 @@ class Client:
         screen_height = self.screen_size[1]
 
         engine, player_id = self.receive()
+
+        engine.message_log.add_message(
+            "Hello and welcome, adventurer!", UI.Color.welcome_text
+        )
+
         with tcod.context.new_terminal(
                 screen_width,
                 screen_height

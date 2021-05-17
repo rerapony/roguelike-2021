@@ -38,11 +38,15 @@ class AttackComponent(BaseComponent):
         entity = self.entity(engine)
 
         if true_damage > 0:
-            print(f"{entity.name} takes {true_damage} damage!")
+            engine.message_log.add_message(
+                f"{entity.name} takes {true_damage} damage!"
+            )
 
             self.health_component.value -= true_damage
 
-            print(f"{entity.name} HP is: {self.health_component.value} damage!")
+            engine.message_log.add_message(
+                f"{entity.name} HP is: {self.health_component.value} damage!"
+            )
 
         if self.health_component.value <= 0:
             entity.die(engine)

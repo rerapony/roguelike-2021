@@ -22,5 +22,8 @@ class Character(MovableEntity):
         self.attack_component.entity_id = self.entity_id
 
     def die(self, engine: Engine) -> None:
-        print(self.death_message)
+        engine.message_log.add_message(
+           self.death_message
+        )
+
         del engine.game_map.entities[self.entity_id]

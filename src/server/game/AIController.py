@@ -4,7 +4,7 @@ from typing import List, Tuple
 import numpy as np
 import tcod
 
-from src.server.game.Commands import Command, Attack, Advance, Wait
+from src.server.game.Commands import Attack, Advance, Wait
 from src.server.game.Components import BaseComponent
 from src.server.game.Engine import Engine
 
