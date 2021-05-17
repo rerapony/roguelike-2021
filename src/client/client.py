@@ -56,6 +56,8 @@ class Client:
                     if action is not None:
                         self.send(action)
                         engine = self.receive()
+                        if player_id not in engine.players:
+                            return
 
 
 if __name__ == "__main__":
